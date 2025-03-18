@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/trishtzy/go-paradex/config"
+	"github.com/trishtzy/go-paradex/internal/config"
 )
 
 var typesStandard = apitypes.Types{

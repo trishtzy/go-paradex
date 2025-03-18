@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/trishtzy/go-paradex/config"
+	"github.com/trishtzy/go-paradex/internal/config"
 )
 
 const DEFAULT_EXPIRY_IN_SECONDS = int64(30)
