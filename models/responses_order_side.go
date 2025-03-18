@@ -76,3 +76,7 @@ func (m ResponsesOrderSide) Validate(formats strfmt.Registry) error {
 func (m ResponsesOrderSide) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
+
+func (m ResponsesOrderSide) MarshalJSON() ([]byte, error) {
+	return json.Marshal(string(m))
+}
