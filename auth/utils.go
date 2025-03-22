@@ -17,8 +17,8 @@ import (
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/trishtzy/paradex-api/config"
-	"github.com/trishtzy/paradex-api/models"
+	"github.com/trishtzy/go-paradex/internal/config"
+	"github.com/trishtzy/go-paradex/models"
 )
 
 func Print(str ...any) {
@@ -162,4 +162,24 @@ func GnarkSign(messageHash *big.Int, privateKey string) (r, s *big.Int, err erro
 	r = new(big.Int).SetBytes(sigBin[:fr.Bytes])
 	s = new(big.Int).SetBytes(sigBin[fr.Bytes:])
 	return r, s, nil
+}
+
+func GetChainID(env string) string {
+	if env == "testnet" {
+		return "11155111"
+	}
+	return "1"
+}
+
+func GetChainIDName(env string) string {
+	switch env {
+	case "nightly":
+		return "PRIVATE_SN_POTC_MOCK_SEPOLIA"
+	case "testnet":
+		return "PRIVATE_SN_POTC_SEPOLIA"
+	case "mainnet":
+		return "PRIVATE_SN_PARACLEAR_MAINNET"
+	default:
+		return ""
+	}
 }

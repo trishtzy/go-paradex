@@ -1,3 +1,8 @@
+// Package auth provides utilities for signing and verifying messages using EIP-712 and Starknet.
+//
+// It includes functions for generating Ethereum account addresses from private keys,
+// creating Starknet private keys from Ethereum private keys, and signing and verifying
+// messages using EIP-712.
 package auth
 
 import (
