@@ -17,7 +17,6 @@ import (
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/trishtzy/go-paradex/internal/config"
 	"github.com/trishtzy/go-paradex/models"
 )
 
@@ -112,22 +111,22 @@ func hashKeyWithIndex(keySeed string, index int) *big.Int {
 }
 
 // GetEthereumAccount generates an Ethereum account from a private key.
-func GetEthereumAccount() (string, string) {
-	if config.App.EthereumPrivateKey == "" {
-		panic("ETHEREUM_PRIVATE_KEY is not set")
-	}
-	ethPrivateKey := strings.TrimPrefix(config.App.EthereumPrivateKey, "0x")
+func GetEthereumAccount(ethereumPrivateKey string) (string, string) {
+	ethPrivateKey := strings.TrimPrefix(ethereumPrivateKey, "0x")
 	privateKeyBytes, _ := crypto.HexToECDSA(ethPrivateKey)
 	publicKeyECDSA := &privateKeyBytes.PublicKey
 	ethAddress := crypto.PubkeyToAddress(*publicKeyECDSA).Hex()
-	return config.App.EthereumPrivateKey, ethAddress
+	return ethereumPrivateKey, ethAddress
 }
 
 // GenerateParadexAccount generates a Paradex account from an Ethereum private key.
 func GenerateParadexAccount(sysConfig models.ResponsesSystemConfigResponse, ethPrivateKey string) (string, string, string) {
 	ethPrivateKey = strings.TrimPrefix(ethPrivateKey, "0x")
 	privateKey, _ := crypto.HexToECDSA(ethPrivateKey)
-	ethSignature, _ := SignTypedData(typedData, privateKey)
+	ethSignature, _ := SignTypedData(typedData, privateKey, sysConfig.L1ChainID)
+	if len(ethSignature) == 0 {
+		panic("ethSignature is empty")
+	}
 	// Convert the first 32 bytes of ethSignature to a hex string
 	r := hex.EncodeToString(ethSignature[:32])
 	// Get Starknet curve order

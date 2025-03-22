@@ -3,7 +3,7 @@ package auth
 import (
 	"github.com/dontpanicdao/caigo"
 	"github.com/dontpanicdao/caigo/types"
-	"github.com/trishtzy/go-paradex/internal/config"
+	"github.com/trishtzy/go-paradex/models"
 )
 
 // DEFAULT_EXPIRY_IN_SECONDS is the default expiry time for a signature in seconds.
@@ -11,10 +11,16 @@ const DEFAULT_EXPIRY_IN_SECONDS = int64(30)
 
 // SignerParams represents the parameters for signing a message.
 type SignerParams struct {
-	MessageType       string
+	// MessageType is the type of message to sign.
+	MessageType string
+	// DexAccountAddress is the address of the Paradex account.
 	DexAccountAddress string
-	DexPrivateKey     string
-	Params            map[string]interface{}
+	// DexPrivateKey is the private key of the Paradex account.
+	DexPrivateKey string
+	// SysConfig is the system configuration. This is a required field.
+	SysConfig models.ResponsesSystemConfigResponse
+	// Params is the parameters for the message.
+	Params map[string]interface{}
 }
 
 // SignSNTypedData signs a typed data message using the StarkNet curve.
@@ -24,7 +30,7 @@ func SignSNTypedData(signerParams SignerParams) string {
 
 	sc := caigo.StarkCurve{}
 	message := typedMessage(signerParams)
-	typedData := verificationTypedData(signerParams.MessageType)
+	typedData := verificationTypedData(signerParams.MessageType, signerParams.SysConfig.StarknetChainID)
 	domEnc, _ := typedData.GetTypedMessageHash("StarkNetDomain", typedData.Domain, sc)
 	messageHash, _ := GnarkGetMessageHash(typedData, domEnc, dexAccountAddressBN, message, sc)
 	r, s, _ := GnarkSign(messageHash, signerParams.DexPrivateKey)
@@ -58,7 +64,9 @@ func typedMessage(signerParams SignerParams) caigo.TypedMessage {
 	}
 }
 
-func verificationTypedData(messageType string) *caigo.TypedData {
+// verificationTypedData returns the typed data for a given message type and chain ID.
+// chainID refers to the chain ID of the L2 chain.
+func verificationTypedData(messageType string, chainID string) *caigo.TypedData {
 	var typedData *caigo.TypedData
 	var verificationType VerificationType
 	switch messageType {
@@ -70,6 +78,6 @@ func verificationTypedData(messageType string) *caigo.TypedData {
 		verificationType = VerificationTypeOrder
 	}
 
-	typedData, _ = NewVerificationTypedData(verificationType, config.App.GetChainIDName())
+	typedData, _ = NewVerificationTypedData(verificationType, chainID)
 	return typedData
 }

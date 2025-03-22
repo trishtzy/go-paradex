@@ -8,11 +8,12 @@ package auth
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/trishtzy/go-paradex/internal/config"
 )
 
 var typesStandard = apitypes.Types{
@@ -43,7 +44,7 @@ const primaryType = "Constant"
 var domainStandard = apitypes.TypedDataDomain{
 	Name:    "Paradex",
 	Version: "1",
-	ChainId: config.App.GetChainIDBigInt(), // unused
+	ChainId: (*math.HexOrDecimal256)(big.NewInt(1)), // unused
 }
 
 var messageStandard = map[string]interface{}{
@@ -58,11 +59,12 @@ var typedData = apitypes.TypedData{
 }
 
 // SignTypedData signs a typed data object using the provided private key.
+// chainID refers to the chain ID of the L1 chain.
 // It returns the signature as a byte slice and an error if the signing fails.
-func SignTypedData(typedData apitypes.TypedData, privateKey *ecdsa.PrivateKey) ([]byte, error) {
+func SignTypedData(typedData apitypes.TypedData, privateKey *ecdsa.PrivateKey, chainID string) ([]byte, error) {
 	var signature []byte
 
-	hash, err := EncodeForSigning(typedData)
+	hash, err := EncodeForSigning(typedData, chainID)
 	if err != nil {
 		return signature, err
 	}
@@ -76,13 +78,14 @@ func SignTypedData(typedData apitypes.TypedData, privateKey *ecdsa.PrivateKey) (
 }
 
 // EncodeForSigning encodes a typed data object for EIP-712 signing.
+// chainID refers to the chain ID of the L1 chain.
 // It returns the encoded data as a common.Hash and an error if the encoding fails.
-func EncodeForSigning(typedData apitypes.TypedData) (common.Hash, error) {
+func EncodeForSigning(typedData apitypes.TypedData, chainID string) (common.Hash, error) {
 	var hash common.Hash
 
 	domainDataPayload := typedData.Domain.Map()
 	// TODO: Check if serialised value is in hex. If yes, replace it with decimal
-	domainDataPayload["chainId"] = config.App.ChainID // override with chainId from config
+	domainDataPayload["chainId"] = chainID // override with chainId from config
 
 	domainSeparator, err := typedData.HashStruct("EIP712Domain", domainDataPayload)
 	if err != nil {
