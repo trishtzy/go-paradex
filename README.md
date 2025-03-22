@@ -1,3 +1,4 @@
+[![Go Reference](https://pkg.go.dev/badge/github.com/trishtzy/go-paradex.svg)](https://pkg.go.dev/github.com/trishtzy/go-paradex)
 # Paradex REST API Client
 
 A Go client to interact with Paradex API, generated using go-swagger.
