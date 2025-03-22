@@ -16,6 +16,14 @@ For detailed API documentation, visit:
 go get github.com/trishtzy/paradex-go
 ```
 
+## Environment
+Export these variables before using the client sdk:
+
+```
+export ENV=testnet
+export ETHEREUM_PRIVATE_KEY=0x...
+```
+
 ## Examples
 
 
@@ -43,8 +51,12 @@ if err != nil {
 }
 
 // Step 1.1: Generate paradex L2 account
+config, err := goparadex.NewConfig() // load environment variables
+if err != nil {
+  fmt.Printf("Failed to get config: %v\n", err)
+}
 dexPrivateKey, dexPublicKey, dexAccountAddress := auth.GenerateParadexAccount(
-  *configResp.GetPayload(), config.App.EthereumPrivateKey)
+  *configResp.GetPayload(), config.EthereumPrivateKey)
 fmt.Printf("Paradex L2 account: %s\n", dexAccountAddress)
 fmt.Printf("Paradex L2 private key: %s\n", dexPrivateKey)
 fmt.Printf("Paradex L2 public key: %s\n", dexPublicKey)
@@ -59,6 +71,7 @@ starknetSignature := auth.SignSNTypedData(auth.SignerParams{
   MessageType:       "onboarding",
   DexAccountAddress: dexAccountAddress,
   DexPrivateKey:     dexPrivateKey,
+  SysConfig:         *configResp.GetPayload(),
 })
 // Set request headers for onboarding
 onboardingParams.SetPARADEXETHEREUMACCOUNT(ethereumAddress)
@@ -91,6 +104,7 @@ starknetJwtSignature := auth.SignSNTypedData(auth.SignerParams{
   MessageType:       "auth",
   DexAccountAddress: dexAccountAddress,
   DexPrivateKey:     dexPrivateKey,
+  SysConfig:         *configResp.GetPayload(),
   Params: map[string]interface{}{
     "timestamp":  timestampStr,
     "expiration": expirationStr,
@@ -138,6 +152,7 @@ orderSignature := auth.SignSNTypedData(auth.SignerParams{
   MessageType:       "order",
   DexAccountAddress: dexAccountAddress,
   DexPrivateKey:     dexPrivateKey,
+  SysConfig:         *configResp.GetPayload(),
   Params: map[string]interface{}{
     "timestamp": now,
     "market":    market,
