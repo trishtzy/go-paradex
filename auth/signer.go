@@ -6,8 +6,10 @@ import (
 	"github.com/trishtzy/go-paradex/internal/config"
 )
 
+// DEFAULT_EXPIRY_IN_SECONDS is the default expiry time for a signature in seconds.
 const DEFAULT_EXPIRY_IN_SECONDS = int64(30)
 
+// SignerParams represents the parameters for signing a message.
 type SignerParams struct {
 	MessageType       string
 	DexAccountAddress string
@@ -15,6 +17,8 @@ type SignerParams struct {
 	Params            map[string]interface{}
 }
 
+// SignSNTypedData signs a typed data message using the StarkNet curve.
+// It returns the signature as a string in "[r, s]" format.
 func SignSNTypedData(signerParams SignerParams) string {
 	dexAccountAddressBN := types.HexToBN(signerParams.DexAccountAddress)
 

@@ -57,6 +57,8 @@ var typedData = apitypes.TypedData{
 	Message:     messageStandard,
 }
 
+// SignTypedData signs a typed data object using the provided private key.
+// It returns the signature as a byte slice and an error if the signing fails.
 func SignTypedData(typedData apitypes.TypedData, privateKey *ecdsa.PrivateKey) ([]byte, error) {
 	var signature []byte
 
@@ -73,6 +75,8 @@ func SignTypedData(typedData apitypes.TypedData, privateKey *ecdsa.PrivateKey) (
 	return signature, nil
 }
 
+// EncodeForSigning encodes a typed data object for EIP-712 signing.
+// It returns the encoded data as a common.Hash and an error if the encoding fails.
 func EncodeForSigning(typedData apitypes.TypedData) (common.Hash, error) {
 	var hash common.Hash
 

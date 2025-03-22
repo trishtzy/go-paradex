@@ -16,10 +16,14 @@ import (
 var scaleX8Decimal = decimal.RequireFromString("100000000")
 var snMessageBigInt = types.UTF8StrToBig("StarkNet Message")
 
+// OnboardingPayload represents the payload for onboarding a new user.
+// It contains a single field, "Action", which is a string representing the action to be performed.
 type OnboardingPayload struct {
 	Action string
 }
 
+// FmtDefinitionEncoding encodes the OnboardingPayload for StarkNet signing.
+// It returns a slice of big.Int values representing the encoded payload.
 func (o *OnboardingPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	if field == "action" {
 		fmtEnc = append(fmtEnc, types.StrToFelt(o.Action).Big())
@@ -28,6 +32,7 @@ func (o *OnboardingPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.I
 	return
 }
 
+// AuthPayload represents the payload for authenticating a user.
 type AuthPayload struct {
 	Method     string
 	Path       string
@@ -36,6 +41,8 @@ type AuthPayload struct {
 	Expiration string
 }
 
+// FmtDefinitionEncoding encodes the AuthPayload for StarkNet signing.
+// It returns a slice of big.Int values representing the encoded payload.
 func (o *AuthPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	switch field {
 	case "method":
@@ -55,16 +62,26 @@ func (o *AuthPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	return fmtEnc
 }
 
+// OrderSide represents the side of an order in the order book.
 type OrderSide string
+
+// OrderType represents the type of an order in the order book.
 type OrderType string
+
+// OrderStatus represents the status of an order in the order book.
 type OrderStatus string
+
+// OrderFlag represents the flag of an order in the order book.
 type OrderFlag string
 
 const (
+	// OrderTypeMarket represents a market order.
 	OrderTypeMarket OrderType = "MARKET"
-	OrderTypeLimit  OrderType = "LIMIT"
+	// OrderTypeLimit represents a limit order.
+	OrderTypeLimit OrderType = "LIMIT"
 )
 
+// OrderPayload represents the payload for placing an order.
 type OrderPayload struct {
 	Timestamp int64  // Unix timestamp in milliseconds when signature was created
 	Market    string // Market name - ETH-USD-PERP
@@ -75,14 +92,18 @@ type OrderPayload struct {
 }
 
 const (
-	ORDER_SIDE_BUY  = "BUY"
-	ORDER_SIDE_SELL = "SELL"
+	// ORDER_SIDE_BUY represents a buy order.
+	ORDER_SIDE_BUY OrderSide = "BUY"
+	// ORDER_SIDE_SELL represents a sell order.
+	ORDER_SIDE_SELL OrderSide = "SELL"
 )
 
+// String returns the string representation of the OrderSide.
 func (s OrderSide) String() string {
 	return string(s)
 }
 
+// Get returns the integer enum representation of the OrderSide.
 func (s OrderSide) Get() string {
 	if s == ORDER_SIDE_BUY {
 		return "1"
@@ -91,13 +112,13 @@ func (s OrderSide) Get() string {
 	}
 }
 
-// Multiplies size by decimal precision of 8
+// GetScaledSize multiplies size by decimal precision of 8
 // e.g. 0.2 is converted to 20_000_000 (0.2 * 10^8)
 func (o *OrderPayload) GetScaledSize() string {
 	return decimal.RequireFromString(o.Size).Mul(scaleX8Decimal).String()
 }
 
-// Multiplies price by decimal precision of 8
+// GetScaledPrice multiplies price by decimal precision of 8
 // e.g. 3_309.33 is converted to 330_933_000_000 (3_309.33 * 10^8)
 func (o *OrderPayload) GetScaledPrice() string {
 	price := o.Price
@@ -108,6 +129,8 @@ func (o *OrderPayload) GetScaledPrice() string {
 	}
 }
 
+// FmtDefinitionEncoding encodes the OrderPayload for StarkNet signing.
+// It returns a slice of big.Int values representing the encoded payload.
 func (o *OrderPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	switch field {
 	case "timestamp":
@@ -135,6 +158,8 @@ type ModifyOrderPayload struct {
 	Id string
 }
 
+// FmtDefinitionEncoding encodes the ModifyOrderPayload for StarkNet signing.
+// It returns a slice of big.Int values representing the encoded payload.
 func (mo *ModifyOrderPayload) FmtDefinitionEncoding(field string) (fmtEnc []*big.Int) {
 	fmtEnc = append(fmtEnc, mo.OrderPayload.FmtDefinitionEncoding(field)...)
 	if field == "id" {
@@ -221,15 +246,22 @@ func modifyOrderTypes() map[string]caigo.TypeDef {
 	}
 }
 
+// VerificationType represents the type of verification to be performed.
 type VerificationType string
 
 var (
-	VerificationTypeOnboarding  VerificationType = "Onboarding"
-	VerificationTypeAuth        VerificationType = "Auth"
-	VerificationTypeOrder       VerificationType = "Order"
+	// VerificationTypeOnboarding represents the type of verification for onboarding a new user.
+	VerificationTypeOnboarding VerificationType = "Onboarding"
+	// VerificationTypeAuth represents the type of verification for authenticating a user.
+	VerificationTypeAuth VerificationType = "Auth"
+	// VerificationTypeOrder represents the type of verification for placing an order.
+	VerificationTypeOrder VerificationType = "Order"
+	// VerificationTypeModifyOrder represents the type of verification for modifying an order.
 	VerificationTypeModifyOrder VerificationType = "ModifyOrder"
 )
 
+// NewVerificationTypedData creates a new typed data for a given verification type and chain ID.
+// It returns a caigo TypedData and an error if the type is invalid.
 func NewVerificationTypedData(vType VerificationType, chainId string) (*caigo.TypedData, error) {
 	if vType == VerificationTypeOnboarding {
 		return NewTypedData(onboardingTypes(), domain(chainId), "Constant")
@@ -263,6 +295,7 @@ func NewTypedData(types map[string]caigo.TypeDef, domain *caigo.Domain, pType st
 	return &typedData, nil
 }
 
+// PedersenArray computes the Pedersen hash of an array of big.Int values.
 func PedersenArray(elems []*big.Int) *big.Int {
 	fpElements := make([]*fp.Element, len(elems))
 	for i, elem := range elems {
@@ -272,6 +305,7 @@ func PedersenArray(elems []*big.Int) *big.Int {
 	return hash.BigInt(new(big.Int))
 }
 
+// GetMessageHash computes the hash of a message for a given typed data, domain, account, and stark curve.
 func GetMessageHash(td *caigo.TypedData, domEnc *big.Int, account *big.Int, msg caigo.TypedMessage, sc caigo.StarkCurve) (hash *big.Int, err error) {
 	elements := []*big.Int{snMessageBigInt, domEnc, account, nil}
 
@@ -284,6 +318,7 @@ func GetMessageHash(td *caigo.TypedData, domEnc *big.Int, account *big.Int, msg 
 	return hash, err
 }
 
+// GnarkGetMessageHash computes the hash of a message for a given typed data, domain, account, and stark curve using the Gnark library.
 func GnarkGetMessageHash(td *caigo.TypedData, domEnc *big.Int, account *big.Int, msg caigo.TypedMessage, sc caigo.StarkCurve) (hash *big.Int, err error) {
 	msgEnc, err := GnarkGetTypedMessageHash(td, td.PrimaryType, msg)
 	if err != nil {
@@ -294,6 +329,7 @@ func GnarkGetMessageHash(td *caigo.TypedData, domEnc *big.Int, account *big.Int,
 	return hash, err
 }
 
+// GnarkGetTypedMessageHash computes the hash of a message for a given typed data, input type, and message using the Gnark library.
 func GnarkGetTypedMessageHash(td *caigo.TypedData, inType string, msg caigo.TypedMessage) (hash *big.Int, err error) {
 	prim := td.Types[inType]
 	elements := make([]*big.Int, 0, len(prim.Definitions)+1)

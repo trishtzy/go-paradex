@@ -21,17 +21,20 @@ import (
 	"github.com/trishtzy/go-paradex/models"
 )
 
+// Print prints a message to the console.
 func Print(str ...any) {
 	s := fmt.Sprintln(str...)
 	io.WriteString(os.Stdout, s)
 }
 
+// GetSignatureStr returns a string representation of the signature.
 func GetSignatureStr(r, s *big.Int) string {
 	signature := []string{r.String(), s.String()}
 	signatureByte, _ := json.Marshal(signature)
 	return string(signatureByte)
 }
 
+// ComputeAddress computes the address of a contract.
 func ComputeAddress(config models.ResponsesSystemConfigResponse, publicKey string) string {
 	publicKeyBN := types.HexToBN(publicKey)
 
@@ -63,6 +66,7 @@ func ComputeAddress(config models.ResponsesSystemConfigResponse, publicKey strin
 	return types.BigToHex(addressHash)
 }
 
+// GrindKey grinds a key seed to a valid private key.
 func GrindKey(keySeed string, keyValLimit *big.Int) string {
 	sha256EcMaxDigest := new(big.Int)
 	sha256EcMaxDigest.SetString("1 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000", 16)
@@ -107,7 +111,7 @@ func hashKeyWithIndex(keySeed string, index int) *big.Int {
 	return new(big.Int).SetBytes(hash[:])
 }
 
-// Generate Ethereum public key from Ethereum private key
+// GetEthereumAccount generates an Ethereum account from a private key.
 func GetEthereumAccount() (string, string) {
 	if config.App.EthereumPrivateKey == "" {
 		panic("ETHEREUM_PRIVATE_KEY is not set")
@@ -119,7 +123,7 @@ func GetEthereumAccount() (string, string) {
 	return config.App.EthereumPrivateKey, ethAddress
 }
 
-// Generate Paradex private key from Ethereum private key
+// GenerateParadexAccount generates a Paradex account from an Ethereum private key.
 func GenerateParadexAccount(sysConfig models.ResponsesSystemConfigResponse, ethPrivateKey string) (string, string, string) {
 	ethPrivateKey = strings.TrimPrefix(ethPrivateKey, "0x")
 	privateKey, _ := crypto.HexToECDSA(ethPrivateKey)
@@ -136,7 +140,7 @@ func GenerateParadexAccount(sysConfig models.ResponsesSystemConfigResponse, ethP
 	return dexPrivateKey, dexPublicKey, dexAccountAddress
 }
 
-// Get ECDSA private key from string
+// GetEcdsaPrivateKey returns an ECDSA private key from a string.
 func GetEcdsaPrivateKey(pk string) *ecdsa.PrivateKey {
 	privateKey := types.StrToFelt(pk).Big()
 
@@ -153,6 +157,7 @@ func GetEcdsaPrivateKey(pk string) *ecdsa.PrivateKey {
 	return ecdsaPrivateKey
 }
 
+// GnarkSign signs a message using the Gnark library.
 func GnarkSign(messageHash *big.Int, privateKey string) (r, s *big.Int, err error) {
 	ecdsaPrivateKey := GetEcdsaPrivateKey(privateKey)
 	sigBin, err := ecdsaPrivateKey.Sign(messageHash.Bytes(), nil)
@@ -164,6 +169,8 @@ func GnarkSign(messageHash *big.Int, privateKey string) (r, s *big.Int, err erro
 	return r, s, nil
 }
 
+// GetChainID returns the chain ID for a given environment.
+// Valid values are "testnet", "mainnet", and "nightly".
 func GetChainID(env string) string {
 	if env == "testnet" {
 		return "11155111"
@@ -171,6 +178,8 @@ func GetChainID(env string) string {
 	return "1"
 }
 
+// GetChainIDName returns the chain ID name for a given environment.
+// Valid values are "testnet", "mainnet", and "nightly".
 func GetChainIDName(env string) string {
 	switch env {
 	case "nightly":
