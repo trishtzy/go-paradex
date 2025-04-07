@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 
 	httptransport "github.com/go-openapi/runtime/client"
+	"github.com/google/uuid"
 	goparadex "github.com/trishtzy/go-paradex"
 	"github.com/trishtzy/go-paradex/auth"
 	"github.com/trishtzy/go-paradex/client"
@@ -134,10 +136,13 @@ func main() {
 			"price":     price,
 		},
 	})
+	clientOrderID := uuid.New().String()
+	fmt.Printf("Client order ID: %s\n", clientOrderID)
+
 	orderParams.SetParams(&models.RequestsOrderRequest{
-		ClientID:           "client-id",
-		Type:               struct{ models.ResponsesOrderType }{models.ResponsesOrderType("LIMIT")},
-		Side:               struct{ models.ResponsesOrderSide }{models.ResponsesOrderSide("BUY")},
+		ClientID:           clientOrderID,
+		Type:               struct{ models.ResponsesOrderType }{models.ResponsesOrderTypeLIMIT},
+		Side:               struct{ models.ResponsesOrderSide }{models.ResponsesOrderSideBUY},
 		Market:             &market,
 		Price:              &price,
 		Size:               &size,
@@ -148,6 +153,19 @@ func main() {
 	orderResp, err := api.Orders.OrdersNew(orderParams, bearerAuth)
 	if err != nil {
 		fmt.Printf("Failed to place order: %v\n", err)
+		os.Exit(1)
 	}
-	fmt.Printf("Order placed successfully: %v\n", orderResp.Code())
+
+	orderID := orderResp.GetPayload().ID
+	fmt.Printf("Order %s placed successfully: %v\n", orderID, orderResp.Code())
+	fmt.Printf("Order details: %+v\n", orderResp.GetPayload())
+
+	// Cancel the order
+	cancelParams := orders.NewOrdersCancelParams()
+	cancelParams.SetOrderID(orderID)
+	cancelResp, err := api.Orders.OrdersCancel(cancelParams, bearerAuth)
+	if err != nil {
+		fmt.Printf("Failed to cancel order: %v\n", err)
+	}
+	fmt.Printf("Order %s cancelled successfully: %v\n", orderID, cancelResp.Code())
 }
