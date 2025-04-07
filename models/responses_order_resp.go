@@ -8,6 +8,7 @@ package models
 import (
 	"context"
 	"strconv"
+	"encoding/json"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -331,5 +332,48 @@ func (m *ResponsesOrderResp) UnmarshalBinary(b []byte) error {
 		return err
 	}
 	*m = res
+	return nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface
+func (m *ResponsesOrderResp) UnmarshalJSON(data []byte) error {
+	type Alias ResponsesOrderResp // Create an alias to avoid recursion
+	aux := &struct {
+			Side string `json:"side"`
+			Type string `json:"type"`
+			Status string `json:"status"`
+			Instruction string `json:"instruction"`
+			Stp string `json:"stp"`
+			*Alias
+	}{
+			Alias: (*Alias)(m),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+			return err
+	}
+
+	// Handle side field
+	if aux.Side != "" {
+			m.Side.ResponsesOrderSide = ResponsesOrderSide(aux.Side)
+	}
+
+	// Handle type field
+	if aux.Type != "" {
+			m.Type.ResponsesOrderType = ResponsesOrderType(aux.Type)
+	}
+
+	if aux.Status != "" {
+		m.Status.ResponsesOrderStatus = ResponsesOrderStatus(aux.Status)
+	}
+
+	if aux.Instruction != "" {
+		m.Instruction.ResponsesOrderInstruction = ResponsesOrderInstruction(aux.Instruction)
+	}
+
+	if aux.Stp != "" {
+		m.Stp.ResponsesSTPMode = ResponsesSTPMode(aux.Stp)
+	}
+
 	return nil
 }
