@@ -7,6 +7,7 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
@@ -88,5 +89,22 @@ func (m *ResponsesAPIError) UnmarshalBinary(b []byte) error {
 		return err
 	}
 	*m = res
+	return nil
+}
+
+func (m *ResponsesAPIError) UnmarshalJSON(data []byte) error {
+	type Alias ResponsesAPIError // Create an alias to avoid recursion
+	aux := &struct {
+		Error string `json:"error"`
+		*Alias
+	}{
+		Alias: (*Alias)(m),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	m.Error.ResponsesErrorCode = ResponsesErrorCode(aux.Error)
 	return nil
 }
